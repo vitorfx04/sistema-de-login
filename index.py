@@ -51,14 +51,77 @@ def registrar_usuario(usuarios):
     email = input("Digite seu e-mail: ").strip()
     nome = input("Digite seu nome completo: ").strip()
 
+    while True:
+        nivel = input("Digite o nível de acesso (admin/usuario): ").strip().lower()
+        if nivel in ["admin", "usuario"]:
+            break
+        print("Nível inválido! Digite 'admin' ou 'usuario'.")
+
     usuarios[user] = {
         "senha": gerar_hash(senha),
         "email": email,
-        "nome": nome
+        "nome": nome,
+        "nivel": nivel
     }
 
     salvar_usuarios(usuarios)
     print("✅ Usuário cadastrado com sucesso!")
+
+def editar_perfil(usuarios, usuario_logado):
+    user_data = usuarios[usuario_logado]
+    print("\n--- Editar Perfil ---")
+
+    print(f"Nome atual: {user_data['nome']}")
+    novo_nome = input("Novo nome (pressione Enter para manter): ").strip()
+    if novo_nome:
+        user_data['nome'] = novo_nome
+
+    print(f"E-mail atual: {user_data['email']}")
+    novo_email = input("Novo e-mail (pressione Enter para manter): ").strip()
+    if novo_email:
+        user_data['email'] = novo_email
+
+    alterar_senha = input("Deseja alterar a senha? (s/n): ").strip().lower()
+    if alterar_senha == "s":
+        senha_atual = input("Digite sua senha atual: ").strip()
+        if gerar_hash(senha_atual) == user_data['senha']:
+            nova_senha = input("Nova senha: ").strip()
+            confirmar = input("Confirme a nova senha: ").strip()
+            if nova_senha == confirmar:
+                user_data['senha'] = gerar_hash(nova_senha)
+                print("✅ Senha atualizada.")
+            else:
+                print("❌ As senhas não coincidem.")
+        else:
+            print("❌ Senha atual incorreta.")
+
+    usuarios[usuario_logado] = user_data
+    salvar_usuarios(usuarios)
+    print("✅ Perfil atualizado com sucesso!")
+
+def painel_admin(usuario):
+    print(f"\n🔐 Painel do Admin ({usuario})")
+    print("1 - Editar meu perfil")
+    print("2 - Voltar ao menu")
+    opc = input("Escolha uma opção: ").strip()
+    if opc == "1":
+        editar_perfil(usuarios, usuario)
+    elif opc == "2":
+        return
+    else:
+        print("Opção inválida.")
+
+def painel_usuario(usuario):
+    print(f"\n👤 Painel do Usuário ({usuario})")
+    print("1 - Editar perfil")
+    print("2 - Voltar ao menu")
+    opc = input("Escolha uma opção: ").strip()
+    if opc == "1":
+        editar_perfil(usuarios, usuario)
+    elif opc == "2":
+        return
+    else:
+        print("Opção inválida.")
 
 def login(usuarios):
     print("\n--- Login ---")
@@ -72,7 +135,13 @@ def login(usuarios):
     while tentativas > 0:
         senha = input("Digite sua senha: ").strip()
         if usuarios[user]["senha"] == gerar_hash(senha):
-            print(f"✅ Login bem-sucedido! Bem-vindo(a), {usuarios[user]['nome']}")
+            nivel = usuarios[user]["nivel"]
+            print(f"✅ Login bem-sucedido! Bem-vindo(a), {usuarios[user]['nome']} ({nivel})")
+
+            if nivel == "admin":
+                painel_admin(user)
+            else:
+                painel_usuario(user)
             return
         else:
             tentativas -= 1
@@ -80,6 +149,7 @@ def login(usuarios):
     print("⚠️ Muitas tentativas. Tente novamente mais tarde.")
 
 def menu():
+    global usuarios
     usuarios = carregar_usuarios()
     while True:
         print("\n--- MENU ---")
