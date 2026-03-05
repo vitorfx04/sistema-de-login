@@ -99,7 +99,7 @@ while True:
 
 ## Como Usar
 
-1. Execute o script Python: `python script.py`
+1. Execute o script Python: `python index.py`
 2. Escolha uma das opções no menu.
 3. Para registrar um usuário, insira um nome e uma senha.
 4. Para fazer login, informe um usuário já registrado e sua senha.
